@@ -1,0 +1,35 @@
+[
+    {
+	   "Id": "1",
+	   "Name":"Криштиану",
+       "Surname":"Роналду",
+	   "Nickname":"Ронни, КриРо, CR, CR7, Машина, Криш",
+	   "Photo":"http://www.joaoalberto.com/wp-content/uploads/2017/01/11/cristiano.jpg",
+	   "Age":32,
+	   "Hight":185,
+	   "Weight":80,
+	   "Position":"Крайний полузащитник, нападающий",
+	   "FootballClub":"Реал Мадрид",
+	   "Number":7,
+	   "Country":"Португалия"
+	   
+	},
+
+    {
+	   "Id": "2",
+	   "Name":"Антуан",
+       "Surname":"Гризманн",
+	   "Nickname":	"Маленький принц (Le Petit Prince)",
+	   "Photo":"https://s-media-cache-ak0.pinimg.com/736x/01/91/26/019126f85dc8513aa9bcf4b8dad6e705.jpg",
+	   "Age":26,
+	   "Hight":175,
+	   "Weight":72,
+	   "Position":"Нападающий",
+	   "FootballClub":"Атлетико Мадрид",
+	   "Number":7,
+	   "Country":"Франция"
+	   
+	}
+
+  
+]
