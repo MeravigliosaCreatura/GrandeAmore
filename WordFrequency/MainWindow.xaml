@@ -1,0 +1,34 @@
+﻿<Window x:Class="WordFrequency.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="590" Width="430"
+        AllowsTransparency="True" WindowStyle="None" FontFamily="Tw Cen MT Condensed Extra Bold">
+    <Window.Background>
+        <ImageBrush ImageSource="papyrus_dark.png"></ImageBrush>
+    </Window.Background>
+    <Grid>
+        <Button x:Name="button1" Width="60" Height="30" Content="Open" Click="OpenFile_Click" Margin="58,30,312,530" Background="Transparent" BorderBrush="BlanchedAlmond"/>
+        <Button x:Name="button2" Width="60" Height="30" Content="Show" Click="ShowResult_Click" RenderTransformOrigin="3.317,1.967" Margin="311,30,59,530" Background="Transparent" BorderBrush="BlanchedAlmond" />
+        <StackPanel Orientation="Horizontal" Margin="73,92,72,444" >
+            <TextBlock Text="Слово" Margin="0,0,20,20" Width="80"/>
+            <TextBlock Text="Кол-во" Margin="0,0,20,20" Width="70"/>
+            <TextBlock Text="Балл" Margin="0,0,20,20" Width="50"/>
+        </StackPanel>
+        <ListBox Name="wordsList" Margin="73,151,72,113" Background="Transparent" BorderBrush="Transparent">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" >
+                        <TextBlock Text="{Binding Value}" Margin="0,0,20,20" Width="100" />
+                        <TextBlock Text="{Binding Count}" Margin="0,0,20,20" Width="20"/>
+                        <TextBlock Text="{Binding Point}" Width="100"  />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <Button  Width="51" Height="51" RenderTransformOrigin="0.283,9.3" Margin="184,499,182,27" Click="СloseWindow_Click" >
+            <Button.Background>
+                <ImageBrush ImageSource="krest.png" />
+            </Button.Background>
+        </Button>
+    </Grid>
+</Window>
