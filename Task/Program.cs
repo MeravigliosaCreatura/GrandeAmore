@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Calculator
+namespace Anon
 {
     class Program
     {
-
         public static bool ByFclub(Footballer f1, Footballer f2)
         {
             if (f1._fclub.CompareTo(f2._fclub) < 0)
@@ -102,6 +101,5 @@ namespace Calculator
             }
 
         }
-
     }
 }

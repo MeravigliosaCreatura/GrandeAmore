@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Calculator
+namespace Anon
 {
     public delegate double Operator(double d);
     class Calculator
