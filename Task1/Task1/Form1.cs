@@ -33,6 +33,7 @@ namespace Task1
         private FileSystemWatcher watcher;
         private CancellationTokenSource cancelTokenSource;
         private CancellationToken token;
+        private string pluginFolderPath = @".\plugins";
 
         public Form1()
         {
@@ -51,7 +52,7 @@ namespace Task1
                 panel1.Invoke(new MethodInvoker(delegate { panel1.Controls.Clear(); }));
             }
 
-            DirectoryInfo df = new DirectoryInfo(@".\plugins");
+            DirectoryInfo df = new DirectoryInfo(pluginFolderPath);
             foreach (var file in df.GetFiles("*.dll", SearchOption.TopDirectoryOnly).ToList())
             {
                 try
@@ -93,7 +94,7 @@ namespace Task1
         private void Run()
         {
             watcher = new FileSystemWatcher();
-            watcher.Path = @".\plugins";
+            watcher.Path = pluginFolderPath;
             watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
                | NotifyFilters.FileName;
             watcher.Filter = "*.dll";
@@ -110,6 +111,10 @@ namespace Task1
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            if(!Directory.Exists(pluginFolderPath))
+            {
+                Directory.CreateDirectory(pluginFolderPath);
+            }
             tableLayoutPanel1.ColumnCount = 1;
             numericUpTo.Maximum = 10000000;
             numericUpFrom.Maximum = 10000000;
