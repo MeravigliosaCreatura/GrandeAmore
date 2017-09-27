@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TextSearcherTxt;
 using System.IO;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -23,7 +22,7 @@ namespace SearcherTest
             f1.Add(file2);
             List<FileInfo> expected = new List<FileInfo>();
             expected.Add(file1);
-            List<FileInfo> actual = ts.getFiles(tb, f1);
+            List<FileInfo> actual = ts.getFiles(f1);
             CollectionAssert.AreEqual(expected, actual);
         }
         

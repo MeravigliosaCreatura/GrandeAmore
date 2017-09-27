@@ -1,6 +1,0 @@
-C:\Users\ITGigant\source\repos\Task1\PluginInterface\bin\Debug\PluginInterface.dll
-C:\Users\ITGigant\source\repos\Task1\PluginInterface\bin\Debug\PluginInterface.pdb
-C:\Users\ITGigant\source\repos\Task1\PluginInterface\obj\Debug\PluginInterface.csprojResolveAssemblyReference.cache
-C:\Users\ITGigant\source\repos\Task1\PluginInterface\obj\Debug\PluginInterface.csproj.CoreCompileInputs.cache
-C:\Users\ITGigant\source\repos\Task1\PluginInterface\obj\Debug\PluginInterface.dll
-C:\Users\ITGigant\source\repos\Task1\PluginInterface\obj\Debug\PluginInterface.pdb

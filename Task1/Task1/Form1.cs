@@ -4,21 +4,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Permissions;
 using System.Threading;
-
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Task1
 {
     public partial class Form1 : Form
     {
-        private Thread myThread;
         private DirectoryInfo df;
-        string folderPath = string.Empty;
-        List<FileInfo> files;
+        private string folderPath = string.Empty;
+        private List<FileInfo> files;
         private readonly string extension = "*";
-        private DateTime date { get; set; }
-        private double size { get; set; }
         private List<String> attributes { get; set; }
         private bool IsSubfolderSearch { get; set; }
         private DateTime DateTo { get; set; }
@@ -26,41 +24,60 @@ namespace Task1
         private double SizeFrom { get; set; }
         private double SizeTo { get; set; }
         private delegate void AddListItem(String fileName);
-        private AddListItem addDelegate;
-        IPerfectSearcher searcher;
-        
+        private AddListItem AddDelegate;
+        private delegate void AddComboBoxItem(String pluginName);
+        private AddComboBoxItem AddComboBoxItemDelegate;
+        private int index;
+        private IPerfectSearcher searcher;
+        private List<IPerfectSearcher> plugins = new List<IPerfectSearcher>();
+        private FileSystemWatcher watcher;
+        private CancellationTokenSource cancelTokenSource;
+        private CancellationToken token;
 
         public Form1()
         {
             InitializeComponent();
-
         }
-       
-        private  void loadPlugin()
-        {
-            foreach (var file in Directory.GetFiles(@".\plugins", "*.dll"))
-            {
-                var assembly = Assembly.Load(File.ReadAllBytes(Directory.GetCurrentDirectory() + file));
-                foreach (var type in assembly.GetTypes())
-                {
-                    if (type.GetInterfaces().Contains(typeof(IPerfectSearcher)))
-                    {
-                        searcher = Activator.CreateInstance(type) as IPerfectSearcher;
-                        searcher.AddFunctionality(tableLayoutPanel1);
-                        checkBox1.Visible = true;
-                        checkBox1.Text = searcher.Name;
-                        return;
 
+      
+        private void LoadPlugins()
+        {
+            AddComboBoxItemDelegate = new AddComboBoxItem(AddComboBoxItemMethod);
+            if (plugins.Count > 0)
+            {
+                plugins.Clear();
+                pluginsComboBox.Invoke(new MethodInvoker(delegate { pluginsComboBox.Items.Clear(); }));
+                pluginsComboBox.Invoke(new MethodInvoker(delegate { pluginsComboBox.Text = string.Empty; }));
+                panel1.Invoke(new MethodInvoker(delegate { panel1.Controls.Clear(); }));
+            }
+
+            DirectoryInfo df = new DirectoryInfo(@".\plugins");
+            foreach (var file in df.GetFiles("*.dll", SearchOption.TopDirectoryOnly).ToList())
+            {
+                try
+                {
+                    Assembly assembly = Assembly.Load(File.ReadAllBytes(file.FullName));
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if (type.GetInterfaces().Contains(typeof(IPerfectSearcher)))
+                        {
+                            searcher = Activator.CreateInstance(type) as IPerfectSearcher;
+                            plugins.Add(searcher);
+                            pluginsComboBox.Invoke(AddComboBoxItemDelegate, new Object[] { searcher.Name });
+                        }
                     }
                 }
+                catch (FileNotFoundException) { }
+                catch (IOException) { }
+                
             }
+
            
         }
 
-     
-        private void open_Click(object sender, EventArgs e)
+        
+        private void Open_Click(object sender, EventArgs e)
         {
-           
             using (FolderBrowserDialog dlg = new FolderBrowserDialog())
             {
                 dlg.Description = "Выберите каталог";
@@ -72,90 +89,116 @@ namespace Task1
             }
         }
 
+        [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
+        private void Run()
+        {
+            watcher = new FileSystemWatcher();
+            watcher.Path = @".\plugins";
+            watcher.NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite
+               | NotifyFilters.FileName;
+            watcher.Filter = "*.dll";
+            watcher.Changed += new FileSystemEventHandler(OnChanged);
+            watcher.Created += new FileSystemEventHandler(OnChanged);
+            watcher.Deleted += new FileSystemEventHandler(OnChanged);
+            watcher.EnableRaisingEvents = true;
+        }
+
+        private  void OnChanged(object sender, FileSystemEventArgs e)
+        {
+            LoadPlugins();
+        }
+
         private void Form1_Load(object sender, EventArgs e)
         {
             tableLayoutPanel1.ColumnCount = 1;
             numericUpTo.Maximum = 10000000;
             numericUpFrom.Maximum = 10000000;
             numericUpTo.Value = numericUpTo.Maximum;
-            datePickerFrom.Value = new DateTime(2017, 1, 1);
-            loadPlugin();
-       
-        }
+            datePickerFrom.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            LoadPlugins();
+            Run();
 
-        public void Check()
+            
+        }
+        public void Check(CancellationToken token)
         {
-            foreach (var file in files.ToList())
+            foreach (var file in files)
             {
-                checkFile(file);
+                if (token.IsCancellationRequested) { break; }
+                CheckFile(file);
                 Thread.Sleep(100);
             }
+            search_btn.Invoke(new MethodInvoker(delegate { search_btn.Enabled = true; }));
+            stop_btn.Invoke(new MethodInvoker(delegate { stop_btn.Enabled = false; }));
+            pictureBox1.Invoke(new MethodInvoker(delegate { pictureBox1.Visible = false; }));
+
         }
 
 
-      
+        public void AddComboBoxItemMethod(String pluginName)
+        {
+            pluginsComboBox.Items.Add(pluginName);
+        }
 
         public void AddListItemMethod(String fileName)
         {
             resultList.Items.Add(fileName);
         }
-        private void checkFile(FileInfo file)
+        private void CheckFile(FileInfo file)
         {
-
-            date = file.CreationTime;
-            size = file.Length / 1024;
-            bool dateCondition = (DateTime.Compare(date, DateFrom) >= 0) && (DateTime.Compare(date, DateTo) <= 0);
-            bool sizeCondition = (SizeFrom <= size) && (size <= SizeTo);
-            bool atributesCondition = false;
-
-            FileAttributes fileAttributes = File.GetAttributes(file.FullName);
-            
-            if(readOnlycheckBox.Checked||hiddencheckBox.Checked)
+            Checker checker = new Checker();
+            FileInfo chosenfile = file;
+            if (dateCheckBox.Checked)
             {
-                if((fileAttributes & FileAttributes.Hidden)== FileAttributes.Hidden ||((fileAttributes & FileAttributes.ReadOnly)) == FileAttributes.ReadOnly)
-                {
-                    atributesCondition = true;
-                }
-                if (sizeCondition && dateCondition && atributesCondition)
-                {
-
-                    resultList.Invoke(addDelegate, new Object[] { file.Name });
-                }
-
+                chosenfile = checker.CheckFileDate(file, DateFrom, DateTo);
             }
-            else
+            if (sizeCheckBox.Checked)
             {
-                if (sizeCondition && dateCondition )
-                {
-                     resultList.Invoke(addDelegate, new Object[] { file.Name });
-                }
+                chosenfile = checker.CheckFileSize(chosenfile, SizeFrom, SizeTo);
+              
             }
+            if(readOnlycheckBox.Checked)
+            {
+                chosenfile = checker.CheckFileAttributeIsReadOnly(chosenfile);
+              
+            }
+            if (hiddenCheckBox.Checked)
+            {
+                chosenfile = checker.CheckFileAttributeIsHidden(chosenfile);
+            }
+
+            if (chosenfile == null)
+            {
+                return;
+            }
+
+            else { resultList.Invoke(AddDelegate, new Object[] { chosenfile.Name }); }
             
         }
-        private void search_Click(object sender, EventArgs e)
+        private  void Search_Click(object sender, EventArgs e)
         {
-
             if (!String.IsNullOrEmpty(folderPath))
             {
-
                 IsSubfolderSearch = subfolderCheckBox.Checked;
                 DateTo = datePickerTo.Value;
                 DateFrom = datePickerFrom.Value;
                 SizeTo = (double)numericUpTo.Value;
                 SizeFrom = (double)numericUpFrom.Value;
-
+                search_btn.Enabled = false;
+                stop_btn.Enabled = true;
+                pictureBox1.Visible = true;
             }
             else
             {
                 MessageBox.Show("Выберите папку");
             }
-
-            getAllFiles();
+            GetAllFiles();
             Search();
+
 
         }
 
-        private List<FileInfo> getAllFiles()
+        private List<FileInfo> GetAllFiles()
         {
             if (!String.IsNullOrEmpty(folderPath))
             {
@@ -177,38 +220,55 @@ namespace Task1
                 }
                 catch (Exception) { }
             }
-            if (checkBox1.Checked)
+           
+            if (PluginCheckBox.Checked && pluginsComboBox.SelectedItem!=null)
             {
-                files = searcher.getFiles(tableLayoutPanel1, files);
+                files = plugins[index].getFiles(files);
             }
+
             return files;
         }
 
         private void Search()
         {
-            addDelegate = new AddListItem(AddListItemMethod);
+            cancelTokenSource = new CancellationTokenSource();
+            token = cancelTokenSource.Token;
+            AddDelegate = new AddListItem(AddListItemMethod);
             if (files != null)
             {
-
                 resultList.Items.Clear();
-                myThread = new Thread(new ThreadStart(Check));
-                myThread.Start();
+                Task task1 = new Task(() => Check(token));
+                task1.Start();
+            }
+            
+        }
 
+        private void Stop_Click(object sender, EventArgs e)
+        {
+            stop_btn.Enabled = false;
+            search_btn.Enabled = true;
+            pictureBox1.Visible = false;
+            cancelTokenSource.Cancel();
+        }
+
+        private void pluginsComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            panel1.Controls.Clear();
+            index = pluginsComboBox.SelectedIndex;
+            var plugin = plugins[index];
+            plugin.AddFunctionality(panel1);
+        }
+
+        private void PluginCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (PluginCheckBox.Checked)
+            {
+                pluginsComboBox.Enabled = true;
+            }
+            else
+            {
+                pluginsComboBox.Enabled = false;
             }
         }
-
-        private void stop_Click(object sender, EventArgs e)
-        {
-            myThread.Abort();
-        }
-
-
-        private void buttonPlugin_Click(object sender, EventArgs e)
-        {
-            files = searcher.getFiles(tableLayoutPanel1, getAllFiles());
-            Search();
-        }
-
-
     }
 }

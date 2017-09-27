@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PluginInterface
@@ -13,8 +9,9 @@ namespace PluginInterface
     {
      
         String Name { get; }
-        void AddFunctionality(TableLayoutPanel c);
-        List<FileInfo> getFiles(TableLayoutPanel c, List<FileInfo> files);
+        void AddFunctionality(Panel c);
+        List<FileInfo> getFiles(List<FileInfo> files);
+        void Dispose();
        
     }
 }

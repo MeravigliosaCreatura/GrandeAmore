@@ -29,7 +29,7 @@ namespace SearcherTest
             f1.Add(file4);
             List<FileInfo> expected = new List<FileInfo>();
             expected.Add(file1);
-            List<FileInfo> actual = ps.getFiles(tb, f1);
+            List<FileInfo> actual = ps.getFiles(f1);
             CollectionAssert.AreEqual(expected, actual);
         }
     }

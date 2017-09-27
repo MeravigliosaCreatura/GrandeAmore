@@ -1,17 +1,13 @@
 ﻿using PluginInterface;
-using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace TextSearcherTxt
 {
     public class PictureSearcher : IPerfectSearcher
     {
+        private TextSearcherUserControl tc;
         private string extension = ".txt";
         public string Substring { get; set; }
         public string Name
@@ -19,22 +15,20 @@ namespace TextSearcherTxt
             get { return "Text Searcher"; }
         }
 
-        public void AddFunctionality(TableLayoutPanel c)
+        public void AddFunctionality(Panel c)
         {
-            Label l = new Label();
-            l.Name = "substringLabel";
-            l.Text = "Подстрока";
-            TextBox tb = new TextBox();
-            tb.Name = "textBoxSubstr";
-            c.Controls.Add(l);
-            c.Controls.Add(tb);
-
+            tc = new TextSearcherUserControl();
+            c.Controls.Add(tc);
         }
 
-        public List<FileInfo> getFiles(TableLayoutPanel c, List<FileInfo> files)
+        public void Dispose()
         {
-          
-            var textbox = c.Controls["textBoxSubstr"];
+           
+        }
+
+        public List<FileInfo> getFiles(List<FileInfo> files)
+        {
+            var textbox = tc.Controls["textBox1"];
             if(textbox!=null)
             {
                 Substring = textbox.Text;
@@ -52,7 +46,6 @@ namespace TextSearcherTxt
                 }
 
             }
-
             return textFiles;
         }
 
